@@ -3,13 +3,14 @@ import { getProviders, signIn } from 'next-auth/react'
 import { useState, useEffect } from "react"
 
 type Provider = {
-  id: string
-  name: string
-  type: string
-  signInUrl: string
-  callbackUrl: string
-  signInUrlParams: Record<string, string> | null
+  id: string;
+  name: string;
+  type: string;
+  signinUrl: string;
+  callbackUrl: string;
+  signinUrlParams?: Record<string, string> | null;
 }
+
 type Providers = Record<string, Provider>
 
 const AuthProviders = () => {
@@ -19,7 +20,7 @@ const AuthProviders = () => {
     const fetchProviders = async () => {
       const res = await getProviders()
       console.log(res);
-      
+
       setProviders(res)
     }
     fetchProviders()
@@ -29,7 +30,7 @@ const AuthProviders = () => {
     return (
       <div>
         {Object.values(providers).map((provider: Provider, i) => (
-          <button key={i}>{provider.id}</button>
+          <button key={i} onClick={() => signIn(provider?.id)}>{provider.id}</button>
         ))}</div>
     )
   }
