@@ -1,4 +1,6 @@
 import { ProjectInterface } from "@common.types"
+import Categories from "@components/Categories";
+import LoadMore from "@components/LoadMore";
 import ProjectCard from "@components/ProjectCard";
 import { fetchAllProjects } from "@lib/actions"
 
@@ -8,32 +10,50 @@ type ProjectsSearch = {
         pageInfo: {
             hasPreviousPage: boolean;
             hasNextPage: boolean;
-            startCursor: boolean;
-            endCursor: boolean;
+            startCursor: string;
+            endCursor: string;
         }
     }
 }
-const Home = async () => {
-    const data = await fetchAllProjects() as ProjectsSearch
+
+type searchParams = {
+    category?: string | null;
+    endcursor?: string | null;
+}
+
+type Props = {
+    searchParams: searchParams
+}
+
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+export const revalidate = 0
+
+const Home = async ({ searchParams: { category, endcursor } }: Props) => {
+    const data = await fetchAllProjects(category, endcursor) as ProjectsSearch
 
     const projectsToDisplay = data?.projectSearch?.edges || []
 
     if (projectsToDisplay.length === 0) {
         return (
             <section className="flexStart flex-col paddings">
-                Categories
+                <Categories />
+
                 <p className="no-result-text text-center">No Projects found, go create some first.</p>
             </section>
         )
     }
+
+    const pagination = data?.projectSearch?.pageInfo
+
     return (
-        <section className="flex-start flex-col paddings mb-16">
-            <h1>Categories</h1>
+        <section className="flexStart flex-col paddings mb-16">
+            <Categories />
 
             <section className="projects-grid">
                 {projectsToDisplay.map(({ node }: { node: ProjectInterface }) => (
                     <ProjectCard
-                        key={node?.id}
+                        key={`${node?.id}`}
                         id={node?.id}
                         image={node?.image}
                         title={node?.title}
@@ -43,13 +63,12 @@ const Home = async () => {
                     />
                 ))}
             </section>
-
-            <h1>
-                Posts
-            </h1>
-            <h1>
-                Loadmore
-            </h1>
+            <LoadMore
+                startCursor={pagination.startCursor}
+                endCursor={pagination.endCursor}
+                hasPreviousPage={pagination.hasPreviousPage}
+                hasNextPage={pagination.hasNextPage}
+            />
         </section>
     )
 }
